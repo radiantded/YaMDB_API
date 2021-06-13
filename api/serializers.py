@@ -1,6 +1,7 @@
 from rest_framework import serializers, validators
 
 from .models import Review, Comment
+from users.models import User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -36,3 +37,10 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         required_fields = ('text',)
         read_only_fields = ('title',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name',
+                  'username', 'bio', 'email', 'role']
