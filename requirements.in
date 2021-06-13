@@ -1,4 +1,5 @@
 pytest-django
 requests
 django
-djangorestframework
+djangorestframewor
+django-cors-headers
