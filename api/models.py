@@ -50,6 +50,7 @@ class Review(models.Model):
                                on_delete=models.CASCADE,
                                related_name='author')
     text = models.TextField()
+    score = models.IntegerField()
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
@@ -88,6 +89,7 @@ class Comment(models.Model):
     def __str__(self):
         return (
             f'Автор: {self.author.username}, '
+            f'Название: {self.title}, '
             f'Текст: {self.text[:20]}, '
             f'Дата: {self.created}'
         )

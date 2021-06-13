@@ -26,5 +26,5 @@ class CommentsViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            post=get_object_or_404(Titles, id=self.kwargs['title_id'])
+            title=get_object_or_404(Titles, id=self.kwargs['title_id'])
         )

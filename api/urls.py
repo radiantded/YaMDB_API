@@ -9,7 +9,7 @@ router_v1 = routers.DefaultRouter()
 router_v1.register('v1/reviews',
                    ReviewViewSet,
                    basename='reviews')
-router_v1.register(r'v1/posts/(?P<title_id>\d+)/comments',
+router_v1.register(r'v1/reviews/(?P<title_id>\d+)/comments',
                    CommentsViewSet,
                    basename='comments')
 

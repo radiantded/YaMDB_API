@@ -8,11 +8,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='username'
     )
+    score = serializers.IntegerField(
+        max_value=10,
+        min_value=1
+    )
 
     class Meta:
         model = Review
-        fields = ('id', 'author', 'text', 'user',)
-        required_fields = ('text',)
+        fields = '__all__'
+        required_fields = ('text', 'score',)
         validators = [
             validators.UniqueTogetherValidator(
                 queryset=Review.objects.all(),
