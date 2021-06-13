@@ -20,8 +20,8 @@ class Review(models.Model):
 
     def __str__(self):
         return (
-            f'Автор {self.author.username}, '
-            f'Подписчик {self.user.username}, '
+            f'Автор поста {self.author.username}, '
+            f'Автор отзыва {self.user.username}, '
             f'Текст {self.text[:20]}, '
             f'Дата {self.created}'
         )
@@ -31,8 +31,8 @@ class Comment(models.Model):
     author = models.ForeignKey(
         'User', on_delete=models.CASCADE, related_name='comments'
     )
-    post = models.ForeignKey(
-        'Post', on_delete=models.CASCADE, related_name='comments'
+    title = models.ForeignKey(
+        'Title', on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
     created = models.DateTimeField(
