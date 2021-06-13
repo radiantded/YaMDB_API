@@ -1,11 +1,13 @@
 from django.db import models
 
+from users.models import User
+
 
 class Review(models.Model):
-    user = models.ForeignKey('User', verbose_name='Автор отзыва',
+    user = models.ForeignKey(User, verbose_name='Автор отзыва',
                              on_delete=models.CASCADE,
                              related_name='reviewer')
-    author = models.ForeignKey('User', verbose_name='Автор поста',
+    author = models.ForeignKey(User, verbose_name='Автор поста',
                                on_delete=models.CASCADE,
                                related_name='author')
     text = models.TextField()
@@ -29,10 +31,10 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        'User', on_delete=models.CASCADE, related_name='comments'
+        User, on_delete=models.CASCADE, related_name='comments'
     )
     title = models.ForeignKey(
-        'Title', on_delete=models.CASCADE, related_name='comments'
+        Title, on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
     created = models.DateTimeField(
