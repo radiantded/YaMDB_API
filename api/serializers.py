@@ -1,6 +1,6 @@
 from rest_framework import serializers, validators
 
-from .models import Review, Comment
+from .models import Review, Comment, Title, Category, Genre
 from users.models import User
 
 
@@ -44,3 +44,21 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'first_name', 'last_name',
                   'username', 'bio', 'email', 'role')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fileds = '__all__'
+        model = Title
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Category

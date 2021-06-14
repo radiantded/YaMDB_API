@@ -12,6 +12,7 @@ def year_validator(value):
 
 
 class Category(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(verbose_name='Категория', max_length=100)
     slug = models.SlugField(verbose_name='Slug', max_length=50, unique=True)
 
@@ -20,6 +21,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(verbose_name='Жанр', max_length=100)
     slug = models.SlugField(verbose_name='Slug', max_length=50, unique=True)
 
@@ -28,6 +30,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(verbose_name='Название', max_length=200)
     year = models.IntegerField(verbose_name='Год выхода',
                                validators=[year_validator])
@@ -43,6 +46,7 @@ class Title(models.Model):
 
 
 class Review(models.Model):
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, verbose_name='Автор отзыва',
                              on_delete=models.CASCADE,
                              related_name='reviewer')
@@ -70,6 +74,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    id = models.AutoField(primary_key=True)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'
     )
