@@ -7,7 +7,12 @@ from users.models import User
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='username'
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    title = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name'
     )
     score = serializers.IntegerField(
         max_value=10,
@@ -18,12 +23,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
         required_fields = ('text', 'score',)
-        validators = [
-            validators.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('user', 'author',)
-            )
-        ]
+        # validators = [
+        #     validators.UniqueTogetherValidator(
+        #         queryset=Title.objects.all(),
+        #         fields=('author'),
+        #         message='Низя'
+        #     )
+        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -36,7 +42,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
         required_fields = ('text',)
-        read_only_fields = ('title',)
+        read_only_fields = ('review',)
 
 
 class UserSerializer(serializers.ModelSerializer):
