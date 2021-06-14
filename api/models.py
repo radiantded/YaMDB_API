@@ -43,14 +43,14 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    user = models.ForeignKey(User, verbose_name='Автор отзыва',
-                             on_delete=models.CASCADE,
-                             related_name='reviewer')
-    author = models.ForeignKey(User, verbose_name='Автор поста',
+    author = models.ForeignKey(User, verbose_name='Автор отзыва',
                                on_delete=models.CASCADE,
-                               related_name='author')
+                               related_name='reviewer')
+    title = models.ForeignKey(Title, verbose_name='Название объекта',
+                              on_delete=models.CASCADE,
+                              related_name='reviews')
     text = models.TextField()
-    score = models.IntegerField()
+    score = models.IntegerField(default=1)
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
@@ -73,8 +73,8 @@ class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'
     )
-    title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='comments'
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
     created = models.DateTimeField(
