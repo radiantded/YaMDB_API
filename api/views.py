@@ -11,17 +11,21 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Review, Title
 # from .permissions import IsAuthorOrReadOnly
 from .serializers import ReviewSerializer, CommentSerializer, UserSerializer
+from .models import Review, Title
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 
 
 class ReviewViewSet(ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
+    def get_queryset(self):
+        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews
+
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user,
+                        title=Title.objects.get(id=self.kwargs['title_id']))
 
 
 class CommentsViewSet(ModelViewSet):
@@ -29,12 +33,12 @@ class CommentsViewSet(ModelViewSet):
     # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id']).comments
+        return get_object_or_404(Review, id=self.kwargs['review_id']).comments
 
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            title=get_object_or_404(Title, id=self.kwargs['title_id'])
+            review=get_object_or_404(Review, id=self.kwargs['review_id'])
         )
 
 

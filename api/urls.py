@@ -12,10 +12,10 @@ router_v1 = routers.DefaultRouter()
 router_v1.register('v1/users',
                    UserViewSet,
                    basename='users')
-router_v1.register('v1/reviews',
+router_v1.register(r'v1/titles/(?P<title_id>\d+)/reviews',
                    ReviewViewSet,
                    basename='reviews')
-router_v1.register(r'v1/reviews/(?P<title_id>\d+)/comments',
+router_v1.register(r'v1/titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
                    CommentsViewSet,
                    basename='comments')
 
