@@ -4,11 +4,12 @@ from django.contrib.auth.models import AbstractUser
 
 
 ROLES = (
-    ('User', 'Пользователь'),
-    ('Moderator', 'Модератор'),
-    ('Admin', 'Администратор'),
-    ('Django admin', 'Администратор Django')
+    ('user', 'пользователь'),
+    ('moderator', 'модератор'),
+    ('admin', 'администратор'),
+    ('django admin', 'администратор Django')
 )
+
 
 class User(AbstractUser):
     first_name = models.CharField(
@@ -38,7 +39,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=30,
         choices=ROLES,
-        default='User'
+        default='user'
     )
 
     class Meta:
@@ -48,6 +49,7 @@ class User(AbstractUser):
     def __str__(self):
         return (f'Имя: {self.first_name}, '
                 f'фамилия: {self.last_name}, '
+                f'о себе: {self.bio[:15]}, '
                 f'username: {self.username}, '
                 f'адрес электронной почты: {self.email}, '
                 f'роль: {self.role}')
