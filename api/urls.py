@@ -6,16 +6,18 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
 from .views import (ReviewViewSet,
                     CommentsViewSet,
                     UserViewSet,
+                    GenreViewSet,
+                    TitleViewSet,
+                    CategoryViewSet,
                     send_email)
 
 router_v1 = routers.DefaultRouter()
-router_v1.register('v1/users',
-                   UserViewSet,
-                   basename='users')
-router_v1.register(r'v1/titles/(?P<title_id>\d+)/reviews',
-                   ReviewViewSet,
-                   basename='reviews')
-router_v1.register(r'v1/titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+router_v1.register('v1/users', UserViewSet, basename='users')
+router_v1.register('v1/reviews', ReviewViewSet, basename='reviews')
+router_v1.register('v1/genres', GenreViewSet, basename='genres')
+router_v1.register('v1/categories', CategoryViewSet, basename='categories')
+router_v1.register('v1/titles', TitleViewSet, basename='titles')
+router_v1.register(r'v1/reviews/(?P<title_id>\d+)/comments',
                    CommentsViewSet,
                    basename='comments')
 

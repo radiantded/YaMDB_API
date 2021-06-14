@@ -1,12 +1,14 @@
 import uuid
 
-from rest_framework import status
+from django.core.mail import send_mail
+from django.db.models import query
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.filters import SearchFilter
 
 from .models import Review, Title
 # from .permissions import IsAuthorOrReadOnly
@@ -14,6 +16,20 @@ from .serializers import ReviewSerializer, CommentSerializer, UserSerializer
 from .models import Review, Title
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
+
+from .models import Category, Genre, Review, Title
+# from .permissions import IsAuthorOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, TitleSerializer,
+                          UserSerializer)
+
+class GetPostDelViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
 
 
 class ReviewViewSet(ModelViewSet):
@@ -45,6 +61,27 @@ class CommentsViewSet(ModelViewSet):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class CategoryViewSet(GetPostDelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    # permission_classes = [IsAdminOrReadOnly,]
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
+
+
+class GenreViewSet(GetPostDelViewSet):
+    query = Genre.objects.all()
+    serializer_class = GenreSerializer
+    # permission_classes = [IsAdminOrReadOnly,]
+    filter_backends = [SearchFilter]
+    searh_fields = ['name']
+
+
+class TitleViewSet(ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
 
 
 @api_view(http_method_names=['POST'])
