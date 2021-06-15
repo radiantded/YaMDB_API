@@ -1,5 +1,6 @@
 pytest-django
 requests
 django
-djangorestframewor
+djangorestframework
 django-cors-headers
+pip install djangorestframework-simplejwt

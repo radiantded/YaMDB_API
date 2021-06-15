@@ -56,20 +56,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
         model = Genre
+        lookup_field = 'slug'
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='name'
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='name'
+    )
+
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'year', 'description', 'genre', 'category')
         model = Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug',)
         model = Category
+        lookup_field = 'slug'
 
 
 class CustomTokenObtainSerializer(serializers.Serializer):

@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
+from .permissions import IsAdminOrReadOnly
 from .models import Category, Genre, Review, Title
 # from .permissions import IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -62,22 +63,25 @@ class UserViewSet(ModelViewSet):
 class CategoryViewSet(GetPostDelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes = [IsAdminOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,]
+    lookup_field = 'slug'
     filter_backends = [SearchFilter]
     search_fields = ['name']
 
 
 class GenreViewSet(GetPostDelViewSet):
-    query = Genre.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # permission_classes = [IsAdminOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,]
+    lookup_field = 'slug'
     filter_backends = [SearchFilter]
-    searh_fields = ['name']
+    search_fields = ['name']
 
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,]
 
     
 class CustomTokenObtainPairView(TokenObtainPairView):
