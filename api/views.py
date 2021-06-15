@@ -1,7 +1,7 @@
 import uuid
 
 from django.core.mail import send_mail
-from django.db.models import query
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view
@@ -11,14 +11,13 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
 
 from .models import Review, Title
-# from .permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly
 from .serializers import ReviewSerializer, CommentSerializer, UserSerializer
 from .models import Review, Title
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 
 from .models import Category, Genre, Review, Title
-# from .permissions import IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer)
@@ -34,10 +33,10 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews
+        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user,
@@ -46,10 +45,10 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentsViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return get_object_or_404(Review, id=self.kwargs['review_id']).comments
+        return get_object_or_404(Review, id=self.kwargs['review_id']).comments.all()
 
     def perform_create(self, serializer):
         serializer.save(
@@ -72,7 +71,7 @@ class CategoryViewSet(GetPostDelViewSet):
 
 
 class GenreViewSet(GetPostDelViewSet):
-    query = Genre.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     # permission_classes = [IsAdminOrReadOnly,]
     filter_backends = [SearchFilter]

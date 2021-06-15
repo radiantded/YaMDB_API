@@ -23,14 +23,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
         required_fields = ('text', 'score',)
-        # validators = [
-        #     validators.UniqueTogetherValidator(
-        #         queryset=Title.objects.all(),
-        #         fields=('author'),
-        #         message='Низя'
-        #     )
-        # ]
-
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=['author'],
+                message='Тебе не жирно будет?'
+            )
+        ]
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -60,7 +59,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     class Meta:
-        fileds = '__all__'
+        fields = '__all__'
         model = Title
 
 
