@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers, validators
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import RefreshToken
 
 from .models import Review, Comment, Title, Category, Genre

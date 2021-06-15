@@ -12,7 +12,6 @@ ROLES = (
 
 
 class User(AbstractUser):
-    id = models.AutoField(primary_key=True)
     first_name = models.CharField(
         max_length=30,
         blank=True,
@@ -43,8 +42,7 @@ class User(AbstractUser):
         default='user'
     )
     confirmation_code = models.CharField(
-        max_length=50,
-        unique=True
+        max_length=50
     )
 
     class Meta:
