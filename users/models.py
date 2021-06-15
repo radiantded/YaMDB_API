@@ -41,15 +41,16 @@ class User(AbstractUser):
         choices=ROLES,
         default='user'
     )
+    confirmation_code = models.CharField(
+        max_length=50,
+        unique=True
+    )
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return (f'Имя: {self.first_name}, '
-                f'фамилия: {self.last_name}, '
-                f'о себе: {self.bio[:15]}, '
-                f'username: {self.username}, '
+        return (f'Username: {self.username}, '
                 f'адрес электронной почты: {self.email}, '
                 f'роль: {self.role}')

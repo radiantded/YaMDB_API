@@ -1,11 +1,11 @@
 from django.urls import path, include
 from rest_framework import routers
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (ReviewViewSet,
                     CommentsViewSet,
                     UserViewSet,
+                    CustomTokenObtainPairView,
                     send_email)
 
 router_v1 = routers.DefaultRouter()
@@ -26,7 +26,7 @@ urlpatterns = [
     path('v1/auth/email/',
          send_email),
     path('v1/auth/token/',
-         TokenObtainPairView.as_view(),
+         CustomTokenObtainPairView.as_view(),
          name='token_obtain_pair'),
     path('v1/auth/token/refresh/',
          TokenRefreshView.as_view(),
