@@ -62,7 +62,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     class Meta:
-        fileds = '__all__'
+        fields = '__all__'
         model = Title
 
 
