@@ -4,23 +4,20 @@ from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Review, Title
 from .permissions import IsAuthorOrReadOnly
-from .serializers import ReviewSerializer, CommentSerializer, UserSerializer
-from .models import Review, Title
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserSerializer)
+                          UserSerializer, CustomTokenObtainPairSerializer)
 
 class GetPostDelViewSet(
     mixins.ListModelMixin,
@@ -82,8 +79,13 @@ class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
 
+    
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
 
 @api_view(http_method_names=['POST'])
+@permission_classes([AllowAny])
 def send_email(request):
     serializer = UserSerializer(data=request.data)
     if not serializer.is_valid():
@@ -98,6 +100,9 @@ def send_email(request):
               ),
               DEFAULT_FROM_EMAIL,
               [email])
-    serializer.save(email=email)
-    return Response('Код подтверждения был отправлен Вам на почту.',
-                    status=status.HTTP_201_CREATED)
+    if not User.objects.filter(username=email, email=email).exists():
+        serializer.save(username=email,
+                        email=email,
+                        confirmation_code=random_code)
+        return Response('Код подтверждения был отправлен Вам на почту.',
+                        status=status.HTTP_201_CREATED)
