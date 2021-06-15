@@ -1,11 +1,11 @@
 import uuid
 
 from django.core.mail import send_mail
-from django.db.models import query
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
@@ -14,10 +14,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from .models import Category, Genre, Review, Title
-# from .permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer, CustomTokenObtainPairSerializer)
+
 
 class GetPostDelViewSet(
     mixins.ListModelMixin,
@@ -30,10 +31,10 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews
+        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user,
@@ -42,10 +43,10 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentsViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return get_object_or_404(Review, id=self.kwargs['review_id']).comments
+        return get_object_or_404(Review, id=self.kwargs['review_id']).comments.all()
 
     def perform_create(self, serializer):
         serializer.save(
@@ -57,6 +58,24 @@ class CommentsViewSet(ModelViewSet):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
+
+    @action(detail=False,
+            methods=['get', 'patch'],
+            permission_classes=[IsAuthenticated])
+    def me(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if request.method == 'GET':
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        else:
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,
+                                status=status.HTTP_200_OK)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(GetPostDelViewSet):
@@ -68,7 +87,7 @@ class CategoryViewSet(GetPostDelViewSet):
 
 
 class GenreViewSet(GetPostDelViewSet):
-    query = Genre.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     # permission_classes = [IsAdminOrReadOnly,]
     filter_backends = [SearchFilter]
@@ -79,7 +98,7 @@ class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
 
-    
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -92,17 +111,17 @@ def send_email(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     email = serializer.validated_data['email']
     message_subject = 'Код подтверждения YaMDb'
-    confirmation_code = 'Ваш код подтверждения: {confirmation_code}'
-    random_code = uuid.uuid4()
+    message = 'Ваш код подтверждения: {confirmation_code}'
+    confirmation_code = uuid.uuid4()
     send_mail(message_subject,
-              confirmation_code.format(
-                  confirmation_code=random_code
+              message.format(
+                  confirmation_code=confirmation_code
               ),
               DEFAULT_FROM_EMAIL,
               [email])
     if not User.objects.filter(username=email, email=email).exists():
         serializer.save(username=email,
                         email=email,
-                        confirmation_code=random_code)
+                        confirmation_code=confirmation_code)
         return Response('Код подтверждения был отправлен Вам на почту.',
                         status=status.HTTP_201_CREATED)

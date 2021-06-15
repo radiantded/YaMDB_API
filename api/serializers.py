@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers, validators
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import RefreshToken
 
 from .models import Review, Comment, Title, Category, Genre
@@ -62,7 +62,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     class Meta:
-        fileds = '__all__'
+        fields = '__all__'
         model = Title
 
 
