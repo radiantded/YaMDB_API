@@ -1,15 +1,20 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers, validators
-from rest_framework_simplejwt.serializers import RefreshToken, TokenObtainSerializer
+from rest_framework_simplejwt.serializers import RefreshToken
 
-from .models import Review, Comment
+from .models import Review, Comment, Title, Category, Genre
 from users.models import User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='username'
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    title = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name'
     )
     score = serializers.IntegerField(
         max_value=10,
@@ -20,12 +25,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
         required_fields = ('text', 'score',)
-        validators = [
-            validators.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('user', 'author',)
-            )
-        ]
+        # validators = [
+        #     validators.UniqueTogetherValidator(
+        #         queryset=Title.objects.all(),
+        #         fields=('author'),
+        #         message='Низя'
+        #     )
+        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -38,7 +44,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
         required_fields = ('text',)
-        read_only_fields = ('title',)
+        read_only_fields = ('review',)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -46,6 +52,24 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'first_name', 'last_name',
                   'username', 'bio', 'email', 'role')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fileds = '__all__'
+        model = Title
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Category
 
 
 class CustomTokenObtainSerializer(serializers.Serializer):

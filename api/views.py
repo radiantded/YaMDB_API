@@ -1,28 +1,43 @@
 import uuid
 
-from rest_framework import serializers, status
+from django.core.mail import send_mail
+from django.db.models import query
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 
-from .models import Review, Title
-# from .permissions import IsAuthorOrReadOnly
-from .serializers import CustomTokenObtainPairSerializer, ReviewSerializer, CommentSerializer, UserSerializer
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
+from .models import Category, Genre, Review, Title
+# from .permissions import IsAuthorOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, TitleSerializer,
+                          UserSerializer, CustomTokenObtainPairSerializer)
+
+class GetPostDelViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
 
 
 class ReviewViewSet(ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
+    def get_queryset(self):
+        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews
+
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user,
+                        title=Title.objects.get(id=self.kwargs['title_id']))
 
 
 class CommentsViewSet(ModelViewSet):
@@ -30,12 +45,12 @@ class CommentsViewSet(ModelViewSet):
     # permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id']).comments
+        return get_object_or_404(Review, id=self.kwargs['review_id']).comments
 
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            title=get_object_or_404(Title, id=self.kwargs['title_id'])
+            review=get_object_or_404(Review, id=self.kwargs['review_id'])
         )
 
 
@@ -44,6 +59,27 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
 
+class CategoryViewSet(GetPostDelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    # permission_classes = [IsAdminOrReadOnly,]
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
+
+
+class GenreViewSet(GetPostDelViewSet):
+    query = Genre.objects.all()
+    serializer_class = GenreSerializer
+    # permission_classes = [IsAdminOrReadOnly,]
+    filter_backends = [SearchFilter]
+    searh_fields = ['name']
+
+
+class TitleViewSet(ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+
+    
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
