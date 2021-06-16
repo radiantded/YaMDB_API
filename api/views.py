@@ -1,9 +1,8 @@
 import uuid
 
 from django.core.mail import send_mail
-from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets
+from rest_framework import generics, mixins, serializers, status, views, viewsets
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -17,7 +16,7 @@ from users.models import User
 from .permissions import IsAdminOrReadOnly
 from .models import Category, Genre, Review, Title
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (CategorySerializer, CommentSerializer,
+from .serializers import (CategorySerializer, CommentSerializer, EmailSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer, CustomTokenObtainPairSerializer)
 
@@ -108,25 +107,27 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-@api_view(http_method_names=['POST'])
-@permission_classes([AllowAny])
-def send_email(request):
-    serializer = UserSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    email = serializer.validated_data['email']
-    message_subject = 'Код подтверждения YaMDb'
-    message = 'Ваш код подтверждения: {confirmation_code}'
-    confirmation_code = uuid.uuid4()
-    send_mail(message_subject,
-              message.format(
-                  confirmation_code=confirmation_code
-              ),
-              DEFAULT_FROM_EMAIL,
-              [email])
-    if not User.objects.filter(username=email, email=email).exists():
-        serializer.save(username=email,
-                        email=email,
-                        confirmation_code=confirmation_code)
-        return Response('Код подтверждения был отправлен Вам на почту.',
-                        status=status.HTTP_201_CREATED)
+class ConfirmationCodeObtainView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = EmailSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = serializer.validated_data['email']
+        message_subject = 'Код подтверждения YaMDb'
+        message = 'Ваш код подтверждения: {confirmation_code}'
+        confirmation_code = uuid.uuid4()
+        send_mail(message_subject,
+                message.format(
+                    confirmation_code=confirmation_code
+                ),
+                DEFAULT_FROM_EMAIL,
+                [email])
+        if not User.objects.filter(username=email, email=email).exists():
+            User.objects.create(username=email,
+                                email=email,
+                                confirmation_code=confirmation_code)
+            return Response('Код подтверждения был отправлен Вам на почту.',
+                            status=status.HTTP_201_CREATED)
+        return Response('Пользователь с таким email уже существует')

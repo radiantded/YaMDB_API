@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from rest_framework_simplejwt.serializers import RefreshToken
 
 from .models import Review, Comment, Title, Category, Genre
@@ -51,6 +51,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'first_name', 'last_name',
                   'username', 'bio', 'email', 'role')
+
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
 
 
 class GenreSerializer(serializers.ModelSerializer):
