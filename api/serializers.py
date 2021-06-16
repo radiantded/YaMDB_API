@@ -33,6 +33,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         ]
 
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -51,6 +52,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'first_name', 'last_name',
                   'username', 'bio', 'email', 'role')
+
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
 
 
 class GenreSerializer(serializers.ModelSerializer):
