@@ -9,7 +9,7 @@ from .views import (ReviewViewSet,
                     CategoryViewSet,
                     UserViewSet,
                     CustomTokenObtainPairView,
-                    send_email)
+                    ConfirmationCodeObtainView)
 
 router_v1 = routers.DefaultRouter()
 router_v1.register('v1/users', UserViewSet, basename='users')
@@ -29,7 +29,7 @@ urlpatterns = [
     path('',
          include(router_v1.urls)),
     path('v1/auth/email/',
-         send_email),
+         ConfirmationCodeObtainView.as_view()),
     path('v1/auth/token/',
          CustomTokenObtainPairView.as_view(),
          name='token_obtain_pair'),

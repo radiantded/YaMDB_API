@@ -24,9 +24,7 @@ class User(AbstractUser):
     )
     username = models.CharField(
         max_length=128,
-        unique=True,
-        blank=True,
-        null=True
+        unique=True
     )
     bio = models.TextField(
         max_length=1000,
