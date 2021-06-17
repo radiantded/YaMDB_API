@@ -25,7 +25,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         review = Review.objects.filter(
             author=self.context['request'].user,
             title=self.context['view'].kwargs['title_id'])
-        if review.exists():
+        if self.context['request'].method == 'POST' and review.exists():
             raise serializers.ValidationError('Вы не можете оставить '
                                               'больше одного отзыва')
         return data

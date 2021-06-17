@@ -36,7 +36,7 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, AllowAny]
 
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
@@ -51,7 +51,7 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentsViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly, AllowAny]
 
     def get_queryset(self):
         return get_object_or_404(Review, id=self.kwargs['review_id']).comments.all()
