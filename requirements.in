@@ -3,4 +3,5 @@ requests
 django
 djangorestframework
 django-cors-headers
-pip install djangorestframework-simplejwt
+djangorestframework-simplejwt
+django-filter

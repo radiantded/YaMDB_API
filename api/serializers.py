@@ -5,6 +5,8 @@ from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
 from users.models import User
 
+from .models import Category, Comment, Genre, Review, Title
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -53,20 +55,23 @@ class EmailSerializer(serializers.Serializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'slug')
+        fields = ('name', 'slug',)
         model = Genre
         lookup_field = 'slug'
 
 
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug',)
+        model = Category
+        lookup_field = 'slug'
+
+ 
 class TitleSerializerGet(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
-    genre = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name', many=True
-    )
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    rating = serializers.IntegerField(read_only=True)
 
     rating = serializers.SerializerMethodField()
 
@@ -74,7 +79,8 @@ class TitleSerializerGet(serializers.ModelSerializer):
         return Review.objects.filter(title=title).aggregate(Avg('score'))['score__avg']
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category', 'rating')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category',
+                  'rating')
         model = Title
 
 
@@ -96,11 +102,18 @@ class TitleSerializerPost(serializers.ModelSerializer):
         model = Title
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug',)
-        model = Category
-        lookup_field = 'slug'
+class CustomTokenObtainSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    confirmation_code = serializers.CharField()
+
+    def validate(self, attrs):
+        if not User.objects.filter(
+            email=attrs['email'],
+            confirmation_code=attrs['confirmation_code']
+        ).exists():
+            raise ValidationError('Неверный email или confirmation_code')
+        return {}
+
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
