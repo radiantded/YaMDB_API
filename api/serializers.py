@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from rest_framework_simplejwt.serializers import RefreshToken
 from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
@@ -27,6 +27,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         required_fields = ('text', 'score',)
 
 
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -47,6 +48,10 @@ class UserSerializer(serializers.ModelSerializer):
                   'username', 'bio', 'email', 'role')
 
 
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
@@ -54,14 +59,33 @@ class GenreSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
+
+class TitleSerializerGet(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        read_only=True,
         slug_field='name'
     )
+    genre = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name', many=True
+    )
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        model = Title
+
+
+class TitleSerializerPost(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
-        slug_field='name'
+        slug_field='slug',
+        required=False
+    )
+    genre = serializers.SlugRelatedField(
+        queryset = Genre.objects.all(),
+        slug_field='slug',
+        many=True,
+        required=False
     )
     rating = serializers.SerializerMethodField()
 
@@ -69,7 +93,7 @@ class TitleSerializer(serializers.ModelSerializer):
         return Review.objects.filter(title=title).aggregate(Avg('score'))['score__avg']
 
     class Meta:
-        fields = ('name', 'year', 'description', 'genre', 'category', 'rating')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category', 'rating')
         model = Title
 
 
