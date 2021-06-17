@@ -71,20 +71,20 @@ class Review(models.Model):
     text = models.TextField()
     score = models.IntegerField(validators=[MaxValueValidator(10),
                                             MinValueValidator(1)])
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
 
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-        ordering = ('-created',)
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return (
             f'Автор отзыва: {self.author.username}, '
             f'Текст: {self.text[:20]}, '
-            f'Дата: {self.created}, '
+            f'Дата: {self.pub_date}, '
             f'Оценка: {self.score}'
         )
 

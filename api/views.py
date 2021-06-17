@@ -16,9 +16,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from .filters import TitleFilter
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly
 from .models import Category, Genre, Review, Title
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           CustomTokenObtainPairSerializer, EmailSerializer,
                           GenreSerializer, ReviewSerializer,
@@ -37,7 +36,7 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly, ]
 
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
@@ -47,6 +46,7 @@ class ReviewViewSet(ModelViewSet):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         serializer.save(author=self.request.user,
                         title=title)
+                        
 
 
 class CommentsViewSet(ModelViewSet):
