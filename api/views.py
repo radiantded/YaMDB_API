@@ -1,4 +1,6 @@
-import uuid
+import secrets
+
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -67,6 +69,8 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    filter_backends = [SearchFilter]
+    search_fields = ['username']
     permission_classes = [IsAdmin]
 
     @action(detail=False,
@@ -130,9 +134,9 @@ class ConfirmationCodeObtainView(generics.CreateAPIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         email = serializer.validated_data['email']
-        message_subject = 'Код подтверждения YaMDb'
+        message_subject = 'YaMDb confirmation code'
         message = 'Ваш код подтверждения: {confirmation_code}'
-        confirmation_code = uuid.uuid4()
+        confirmation_code = secrets.token_hex()
         send_mail(message_subject,
                   message.format(
                       confirmation_code=confirmation_code
