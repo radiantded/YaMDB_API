@@ -1,9 +1,13 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers, validators
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
 from users.models import User
+
+def required(value):
+    if value is None:
+        raise serializers.ValidationError('This field is required')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
