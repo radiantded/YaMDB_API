@@ -47,7 +47,7 @@ class Title(models.Model):
     category = models.ForeignKey(Category, verbose_name='Категория',
                                  related_name='category', blank=True,
                                  null=True, on_delete=models.SET_NULL)
-    rating = models.IntegerField(verbose_name='Рейтинг')
+    rating = models.IntegerField(verbose_name='Рейтинг', null=True)
     genre = models.ManyToManyField(
         Genre, verbose_name='Жанры', related_name='genre', blank=True
     )
@@ -98,19 +98,19 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ('-created',)
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return (
             f'Автор: {self.author.username}, '
             f'Название: {self.title}, '
             f'Текст: {self.text[:20]}, '
-            f'Дата: {self.created}'
+            f'Дата: {self.pub_date}'
         )

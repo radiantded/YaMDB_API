@@ -10,12 +10,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import Avg
 
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorySerializer, CommentSerializer,
                           EmailSerializer, GenreSerializer,
@@ -35,11 +34,10 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,]
 
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
-
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
@@ -49,7 +47,6 @@ class ReviewViewSet(ModelViewSet):
         if review.exists():
             raise ValidationError('Вы уже оставляли отзыв '
                                   'на данное произведение')
-        
         serializer.save(author=self.request.user,
                         title=title)
 
