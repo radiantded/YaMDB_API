@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from rest_framework.validators import UniqueTogetherValidator
-from rest_framework_simplejwt.serializers import RefreshToken
+from rest_framework_simplejwt.serializers import RefreshToken, TokenObtainPairSerializer
 from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
 from users.models import User
@@ -113,29 +113,24 @@ class CategorySerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class CustomTokenObtainSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    confirmation_code = serializers.CharField()
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = User.EMAIL_FIELD
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['confirmation_code'] = serializers.CharField()
+        del self.fields['password']
 
     def validate(self, attrs):
-        if not User.objects.filter(
-            email=attrs['email'],
-            confirmation_code=attrs['confirmation_code']
-        ).exists():
+        try:
+            user = User.objects.get(
+                email=attrs['email'],
+                confirmation_code=attrs['confirmation_code']
+            )
+        except User.DoesNotExist:
             raise ValidationError('Неверный email или confirmation_code')
-        return {}
-
-
-class CustomTokenObtainPairSerializer(CustomTokenObtainSerializer):
-    @classmethod
-    def get_token(cls, user):
-        return RefreshToken.for_user(user)
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        user = User.objects.get(email=attrs['email'],
-                                confirmation_code=attrs['confirmation_code'])
         refresh = self.get_token(user)
-        data['refresh'] = str(refresh)
-        data['access'] = str(refresh.access_token)
-        return data
+        attrs = {}
+        attrs['refresh'] = str(refresh)
+        attrs['access'] = str(refresh.access_token)
+        return attrs
