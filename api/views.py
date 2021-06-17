@@ -1,5 +1,5 @@
 import uuid
-
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -13,10 +13,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-
 from .filters import TitleFilter
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .models import Category, Genre, Review, Title
 from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -37,14 +38,21 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,]
 
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        review = Review.objects.filter(
+            author=self.request.user,
+            title=title)
+        if review.exists():
+            raise ValidationError('Вы уже оставляли отзыв '
+                                  'на данное произведение')
         serializer.save(author=self.request.user,
-                        title=Title.objects.get(id=self.kwargs['title_id']))
+                        title=title)
 
 
 class CommentsViewSet(ModelViewSet):
@@ -76,11 +84,10 @@ class UserViewSet(ModelViewSet):
         if request.method == 'GET':
             serializer = UserSerializer(user)
             return Response(serializer.data)
-        else:
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers, validators
-from rest_framework_simplejwt.serializers import RefreshToken
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.db.models import Avg
+from .models import Review, Comment, Title, Category, Genre
 from users.models import User
 
 from .models import Category, Comment, Genre, Review, Title
@@ -26,13 +27,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
         required_fields = ('text', 'score',)
-        validators = [
-            validators.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['author'],
-                message='Тебе не жирно будет?'
-            )
-        ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -66,17 +60,23 @@ class GenreSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug',)
         model = Category
         lookup_field = 'slug'
 
-
+ 
 class TitleSerializerGet(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
+
+    rating = serializers.SerializerMethodField()
+
+    def get_rating(self, title):
+        return Review.objects.filter(title=title).aggregate(Avg('score'))['score__avg']
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category',
@@ -115,16 +115,25 @@ class CustomTokenObtainSerializer(serializers.Serializer):
         return {}
 
 
-class CustomTokenObtainPairSerializer(CustomTokenObtainSerializer):
-    @classmethod
-    def get_token(cls, user):
-        return RefreshToken.for_user(user)
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = User.EMAIL_FIELD
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['confirmation_code'] = serializers.CharField()
+        del self.fields['password']
 
     def validate(self, attrs):
-        data = super().validate(attrs)
-        user = User.objects.get(email=attrs['email'],
-                                confirmation_code=attrs['confirmation_code'])
+        try:
+            user = User.objects.get(
+                email=attrs['email'],
+                confirmation_code=attrs['confirmation_code']
+            )
+        except User.DoesNotExist:
+            raise ValidationError('Неверный email или confirmation_code')
         refresh = self.get_token(user)
-        data['refresh'] = str(refresh)
-        data['access'] = str(refresh.access_token)
-        return data
+        attrs = {}
+        attrs['refresh'] = str(refresh)
+        attrs['access'] = str(refresh.access_token)
+        return attrs
