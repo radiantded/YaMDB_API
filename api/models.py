@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
@@ -49,6 +50,7 @@ class Title(models.Model):
     genre = models.ForeignKey(Genre, verbose_name='Жанр',
                               related_name='genre', blank=True, null=True,
                               on_delete=models.SET_NULL)
+    rating = models.IntegerField(verbose_name='Рейтинг')
 
     class Meta:
         verbose_name = 'Произведение'
@@ -67,7 +69,8 @@ class Review(models.Model):
                               on_delete=models.CASCADE,
                               related_name='reviews')
     text = models.TextField()
-    score = models.IntegerField(default=1)
+    score = models.IntegerField(validators=[MaxValueValidator(10),
+                                            MinValueValidator(1)])
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
@@ -79,10 +82,10 @@ class Review(models.Model):
 
     def __str__(self):
         return (
-            f'Автор поста {self.author.username}, '
-            f'Автор отзыва {self.user.username}, '
-            f'Текст {self.text[:20]}, '
-            f'Дата {self.created}'
+            f'Автор отзыва: {self.author.username}, '
+            f'Текст: {self.text[:20]}, '
+            f'Дата: {self.created}, '
+            f'Оценка: {self.score}'
         )
 
 
