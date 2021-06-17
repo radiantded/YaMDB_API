@@ -15,11 +15,11 @@ from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .models import Category, Genre, Review, Title
-from .permissions import IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           EmailSerializer, GenreSerializer,
-                          ReviewSerializer, TitleSerializer,
-                          UserSerializer, CustomTokenObtainPairSerializer)
+                          ReviewSerializer, TitleSerializerGet,
+                          UserSerializer, CustomTokenObtainPairSerializer,
+                          TitleSerializerPost)
 
 
 class GetPostDelViewSet(
@@ -101,8 +101,12 @@ class GenreViewSet(GetPostDelViewSet):
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,]
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleSerializerGet
+        return TitleSerializerPost
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
