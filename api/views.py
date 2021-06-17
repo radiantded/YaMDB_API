@@ -1,5 +1,4 @@
 import uuid
-from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -38,26 +37,21 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, ]
 
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer):
+        serializer.is_valid()
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        review = Review.objects.filter(
-            author=self.request.user,
-            title=title)
-        if review.exists():
-            raise ValidationError('Вы уже оставляли отзыв '
-                                  'на данное произведение')
         serializer.save(author=self.request.user,
                         title=title)
 
 
 class CommentsViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, ]
 
     def get_queryset(self):
         return get_object_or_404(Review, id=self.kwargs['review_id']).comments.all()
