@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import RefreshToken
 from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
@@ -14,19 +15,28 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
     title = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='name'
+        slug_field='name',
     )
     score = serializers.IntegerField(
         max_value=10,
         min_value=1
     )
 
+    def validate(self, data):
+        review = Review.objects.filter(
+            author=self.context['request'].user,
+            title=self.context['view'].kwargs['title_id'])
+        if review.exists():
+            raise serializers.ValidationError('Вы не можете оставить '
+                                              'больше одного отзыва')
+        return data
+
     class Meta:
         model = Review
         fields = '__all__'
         required_fields = ('text', 'score',)
 
-
+        
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
