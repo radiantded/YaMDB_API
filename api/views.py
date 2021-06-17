@@ -1,5 +1,5 @@
 import uuid
-
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, mixins, status, viewsets
@@ -10,6 +10,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Avg
+
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
@@ -38,9 +40,18 @@ class ReviewViewSet(ModelViewSet):
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
 
+
     def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        review = Review.objects.filter(
+            author=self.request.user,
+            title=title)
+        if review.exists():
+            raise ValidationError('Вы уже оставляли отзыв '
+                                  'на данное произведение')
+        
         serializer.save(author=self.request.user,
-                        title=Title.objects.get(id=self.kwargs['title_id']))
+                        title=title)
 
 
 class CommentsViewSet(ModelViewSet):
