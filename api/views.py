@@ -2,26 +2,29 @@ import secrets
 
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .filters import TitleFilter
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorySerializer, CommentSerializer,
-                          EmailSerializer, GenreSerializer,
-                          ReviewSerializer, TitleSerializerGet,
-                          UserSerializer, CustomTokenObtainPairSerializer,
-                          TitleSerializerPost)
+                          CustomTokenObtainPairSerializer, EmailSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleSerializerGet, TitleSerializerPost,
+                          UserSerializer)
 
 
 class GetPostDelViewSet(
@@ -35,26 +38,22 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, AllowAny]
 
     def get_queryset(self):
         return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer):
+        serializer.is_valid()
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        review = Review.objects.filter(
-            author=self.request.user,
-            title=title)
-        if review.exists():
-            raise ValidationError('Вы уже оставляли отзыв '
-                                  'на данное произведение')
         serializer.save(author=self.request.user,
                         title=title)
+                        
 
 
 class CommentsViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly, AllowAny]
 
     def get_queryset(self):
         return get_object_or_404(Review, id=self.kwargs['review_id']).comments.all()
@@ -110,8 +109,11 @@ class GenreViewSet(GetPostDelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
     permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
+    filterset_class = TitleFilter
+    filter_backends = [DjangoFilterBackend, ]
+    search_fields = ['category', 'genre', 'name', 'year']
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
