@@ -47,7 +47,6 @@ class Title(models.Model):
     category = models.ForeignKey(Category, verbose_name='Категория',
                                  related_name='category', blank=True,
                                  null=True, on_delete=models.SET_NULL)
-    rating = models.IntegerField(verbose_name='Рейтинг', null=True)
     genre = models.ManyToManyField(
         Genre, verbose_name='Жанры', related_name='genre', blank=True
     )
