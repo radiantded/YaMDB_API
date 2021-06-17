@@ -1,12 +1,9 @@
 from django.core.exceptions import ValidationError
-from rest_framework import serializers, validators
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework_simplejwt.serializers import RefreshToken, TokenObtainPairSerializer
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
 from users.models import User
-
-from .models import Category, Comment, Genre, Review, Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -70,19 +67,16 @@ class GenreSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug',)
         model = Category
         lookup_field = 'slug'
 
- 
+
 class TitleSerializerGet(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField(read_only=True)
-
     rating = serializers.SerializerMethodField()
 
     def get_rating(self, title):
