@@ -105,7 +105,7 @@ class GenreViewSet(GetPostDelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
+    queryset = Title.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
     filterset_class = TitleFilter
     filter_backends = [DjangoFilterBackend, ]
