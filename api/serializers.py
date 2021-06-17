@@ -2,8 +2,9 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers, validators
 from rest_framework_simplejwt.serializers import RefreshToken
 
-from .models import Review, Comment, Title, Category, Genre
 from users.models import User
+
+from .models import Category, Comment, Genre, Review, Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -60,24 +61,26 @@ class EmailSerializer(serializers.Serializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'slug')
+        fields = ('name', 'slug',)
         model = Genre
         lookup_field = 'slug'
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug',)
+        model = Category
+        lookup_field = 'slug'
+
 
 class TitleSerializerGet(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
-    genre = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name', many=True
-    )
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category',
+                  'rating')
         model = Title
 
 
@@ -88,7 +91,7 @@ class TitleSerializerPost(serializers.ModelSerializer):
         required=False
     )
     genre = serializers.SlugRelatedField(
-        queryset = Genre.objects.all(),
+        queryset=Genre.objects.all(),
         slug_field='slug',
         many=True,
         required=False
@@ -97,13 +100,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Title
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug',)
-        model = Category
-        lookup_field = 'slug'
 
 
 class CustomTokenObtainSerializer(serializers.Serializer):

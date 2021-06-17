@@ -1,25 +1,29 @@
 import uuid
 
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-from .permissions import IsAdmin, IsAdminOrReadOnly
+
+from .filters import TitleFilter
 from .models import Category, Genre, Review, Title
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
-                          EmailSerializer, GenreSerializer,
-                          ReviewSerializer, TitleSerializerGet,
-                          UserSerializer, CustomTokenObtainPairSerializer,
-                          TitleSerializerPost)
+                          CustomTokenObtainPairSerializer, EmailSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleSerializerGet, TitleSerializerPost,
+                          UserSerializer)
 
 
 class GetPostDelViewSet(
@@ -100,8 +104,11 @@ class GenreViewSet(GetPostDelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,]
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
+    filterset_class = TitleFilter
+    filter_backends = [DjangoFilterBackend, ]
+    search_fields = ['category', 'genre', 'name', 'year']
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
