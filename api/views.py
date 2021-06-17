@@ -80,11 +80,10 @@ class UserViewSet(ModelViewSet):
         if request.method == 'GET':
             serializer = UserSerializer(user)
             return Response(serializer.data)
-        else:
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -109,7 +108,7 @@ class GenreViewSet(GetPostDelViewSet):
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
