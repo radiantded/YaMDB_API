@@ -13,19 +13,17 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
+
 from .filters import TitleFilter
-from .permissions import (IsAdmin,
-                          IsAdminOrReadOnly,
-                          IsAuthorOrReadOnly,)
 from .models import Category, Genre, Review, Title
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           CustomTokenObtainPairSerializer, EmailSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleSerializerGet, TitleSerializerPost,
-                          UserSerializer, UserAdminSerializer)
+                          UserAdminSerializer, UserSerializer)
 
 
 class GetPostDelViewSet(

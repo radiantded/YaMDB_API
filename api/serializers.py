@@ -1,9 +1,10 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.db.models import Avg
-from .models import Review, Comment, Title, Category, Genre
+
 from users.models import User
+
+from .models import Category, Comment, Genre, Review, Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -93,10 +94,6 @@ class TitleSerializerGet(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
-
-    def get_rating(self, title):
-        return Review.objects.filter(
-            title=title).aggregate(Avg('score'))['score__avg']
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category',
