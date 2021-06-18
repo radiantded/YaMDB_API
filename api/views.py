@@ -19,8 +19,7 @@ from users.models import User
 from .filters import TitleFilter
 from .permissions import (IsAdmin,
                           IsAdminOrReadOnly,
-                          IsAuthorOrReadOnly,
-                          IsModeratorOrReadOnly)
+                          IsAuthorOrReadOnly,)
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorySerializer, CommentSerializer,
                           CustomTokenObtainPairSerializer, EmailSerializer,
@@ -40,10 +39,11 @@ class GetPostDelViewSet(
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, ]
 
     def get_queryset(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id']).reviews.all()
+        return get_object_or_404(Title,
+                                 id=self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer):
         serializer.is_valid()
@@ -54,10 +54,11 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentsViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly, AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, ]
 
     def get_queryset(self):
-        return get_object_or_404(Review, id=self.kwargs['review_id']).comments.all()
+        return get_object_or_404(Review,
+                                 id=self.kwargs['review_id']).comments.all()
 
     def perform_create(self, serializer):
         serializer.save(

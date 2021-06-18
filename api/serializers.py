@@ -95,7 +95,8 @@ class TitleSerializerGet(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)
 
     def get_rating(self, title):
-        return Review.objects.filter(title=title).aggregate(Avg('score'))['score__avg']
+        return Review.objects.filter(
+            title=title).aggregate(Avg('score'))['score__avg']
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category',
