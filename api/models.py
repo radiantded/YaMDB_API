@@ -51,7 +51,6 @@ class Title(models.Model):
         Genre, verbose_name='Жанры', related_name='genre', blank=True
     )
 
-
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'

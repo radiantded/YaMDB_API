@@ -20,17 +20,18 @@ router_v1.register('v1/titles', TitleViewSet, basename='titles')
 router_v1.register(r'v1/titles/(?P<title_id>\d+)/reviews',
                    ReviewViewSet,
                    basename='reviews')
-router_v1.register(
-     r'v1/titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-     CommentsViewSet, basename='comments'
-)
+router_v1.register((r'v1/titles/(?P<title_id>\d+)/'
+                    r'reviews/(?P<review_id>\d+)/comments'),
+                   CommentsViewSet,
+                   basename='comments')
 
 
 urlpatterns = [
     path('',
          include(router_v1.urls)),
     path('v1/auth/email/',
-         ConfirmationCodeObtainView.as_view()),
+         ConfirmationCodeObtainView.as_view(),
+         name='confirmation_code_obtain'),
     path('v1/auth/token/',
          CustomTokenObtainPairView.as_view(),
          name='token_obtain_pair'),

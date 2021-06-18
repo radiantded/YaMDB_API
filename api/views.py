@@ -1,11 +1,10 @@
 import secrets
 
-from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, mixins, status, viewsets
+from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
@@ -18,13 +17,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from .filters import TitleFilter
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModeratorOrReadOnly
+from .permissions import (IsAdmin,
+                          IsAdminOrReadOnly,
+                          IsAuthorOrReadOnly,
+                          IsModeratorOrReadOnly)
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorySerializer, CommentSerializer,
                           CustomTokenObtainPairSerializer, EmailSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleSerializerGet, TitleSerializerPost,
-                          UserSerializer)
+                          UserSerializer, UserAdminSerializer)
 
 
 class GetPostDelViewSet(
@@ -48,7 +50,6 @@ class ReviewViewSet(ModelViewSet):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         serializer.save(author=self.request.user,
                         title=title)
-                        
 
 
 class CommentsViewSet(ModelViewSet):
@@ -67,7 +68,7 @@ class CommentsViewSet(ModelViewSet):
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserAdminSerializer
     lookup_field = 'username'
     filter_backends = [SearchFilter]
     search_fields = ['username']
@@ -78,16 +79,16 @@ class UserViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated])
     def me(self, request):
         user = get_object_or_404(User, username=request.user.username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
         if request.method == 'GET':
             serializer = UserSerializer(user)
             return Response(serializer.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(GetPostDelViewSet):
@@ -125,7 +126,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class ConfirmationCodeObtainView(generics.CreateAPIView):
+class ConfirmationCodeObtainView(views.APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):

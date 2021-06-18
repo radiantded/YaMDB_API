@@ -5,10 +5,6 @@ from django.db.models import Avg
 from .models import Review, Comment, Title, Category, Genre
 from users.models import User
 
-def required(value):
-    if value is None:
-        raise serializers.ValidationError('This field is required')
-
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -39,7 +35,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         required_fields = ('text', 'score',)
 
-        
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -56,12 +52,27 @@ class CommentSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name',
-                  'username', 'bio', 'email', 'role')
+        fields = ('first_name', 'last_name',
+                  'username', 'bio',
+                  'email', 'role')
+        read_only_fields = ('role', )
+
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name',
+                  'username', 'bio',
+                  'email', 'role')
 
 
 class EmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+    def validate(self, attrs):
+        if User.objects.filter(email=attrs['email']).exists():
+            raise ValidationError('Пользователь с таким email уже существует')
+        return attrs
 
 
 class GenreSerializer(serializers.ModelSerializer):
