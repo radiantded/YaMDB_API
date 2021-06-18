@@ -110,20 +110,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
         model = Title
 
 
-class CustomTokenObtainSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    confirmation_code = serializers.CharField()
-
-    def validate(self, attrs):
-        if not User.objects.filter(
-            email=attrs['email'],
-            confirmation_code=attrs['confirmation_code']
-        ).exists():
-            raise ValidationError('Неверный email или confirmation_code')
-        return {}
-
-
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = User.EMAIL_FIELD
 
