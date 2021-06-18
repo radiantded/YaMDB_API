@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import constraints
 from django.contrib.auth.models import AbstractUser
 
 
