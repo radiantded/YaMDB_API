@@ -29,7 +29,7 @@ from .serializers import (
     CategorySerializer, CommentSerializer,
     ConfirmationDataSerializer, EmailSerializer,
     GenreSerializer, ReviewSerializer,
-    TitleSerializerGet, TitleSerializerPost,
+    TitleReadSerializer, TitleWriteSerializer,
     UserSerializer
 )
 
@@ -133,8 +133,8 @@ class TitleViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
-            return TitleSerializerGet
-        return TitleSerializerPost
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class TokenObtainView(views.APIView):
