@@ -1,10 +1,6 @@
-from django.core.exceptions import ValidationError
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from users.models import User
-
-from .models import Category, Comment, Genre, Review, Title
+from .models import Category, Comment, Genre, Review, Title, User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -53,27 +49,15 @@ class CommentSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('first_name', 'last_name',
-                  'username', 'bio',
-                  'email', 'role')
-        read_only_fields = ('role', )
-
-
-class UserAdminSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('first_name', 'last_name',
-                  'username', 'bio',
-                  'email', 'role')
+        fields = (
+            'first_name', 'last_name',
+            'username', 'bio',
+            'email', 'role'
+        )
 
 
 class EmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-
-    def validate(self, attrs):
-        if User.objects.filter(email=attrs['email']).exists():
-            raise ValidationError('Пользователь с таким email уже существует')
-        return attrs
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -119,24 +103,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
         model = Title
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = User.EMAIL_FIELD
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['confirmation_code'] = serializers.CharField()
-        del self.fields['password']
-
-    def validate(self, attrs):
-        try:
-            user = User.objects.get(
-                email=attrs['email'],
-                confirmation_code=attrs['confirmation_code']
-            )
-        except User.DoesNotExist:
-            raise ValidationError('Неверный email или confirmation_code')
-        refresh = self.get_token(user)
-        attrs = {}
-        attrs['refresh'] = str(refresh)
-        attrs['access'] = str(refresh.access_token)
-        return attrs
+class ConfirmationDataSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    confirmation_code = serializers.CharField()
