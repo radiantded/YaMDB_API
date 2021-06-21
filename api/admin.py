@@ -1,8 +1,9 @@
 from django.contrib import admin
 
-from .models import Category, Genre, Title
+from .models import Category, Genre, Title, Review, Comment
 
 
+@admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'slug')
     search_fields = ('name',)
@@ -10,6 +11,7 @@ class GenreAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'slug')
     search_fields = ('name',)
@@ -17,6 +19,7 @@ class CategoryAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'year', 'description')
     search_fields = ('name',)
@@ -24,6 +27,17 @@ class TitleAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-admin.site.register(Genre, GenreAdmin)
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Title, TitleAdmin)
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'author', 'title', 'score', 'pub_date')
+    search_fields = ('author', 'title', 'score', 'pub_date',)
+    list_filter = ('author', 'score', 'title', 'pub_date',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'author', 'review', 'pub_date')
+    search_fields = ('author', 'review', 'pub_date',)
+    list_filter = ('author', 'review', 'pub_date',)
+    empty_value_display = '-пусто-'

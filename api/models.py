@@ -8,8 +8,8 @@ from users.models import User
 
 
 def year_validator(value):
-    if value < 1000 or value > datetime.now().year:
-        raise ValidationError(f'{value}s is not correct year!')
+    if not (1000 < value < datetime.now().year):
+        raise ValidationError(f'"{value}" не корректное значение года!')
 
 
 class Category(models.Model):
@@ -43,7 +43,7 @@ class Title(models.Model):
     year = models.IntegerField(verbose_name='Год выхода',
                                validators=[year_validator])
     description = models.CharField(verbose_name='Описание', max_length=600,
-                                   default="Описание отсутсвует")
+                                   default="Описание отсутсвует", null=True)
     category = models.ForeignKey(Category, verbose_name='Категория',
                                  related_name='category', blank=True,
                                  null=True, on_delete=models.SET_NULL)
@@ -108,7 +108,6 @@ class Comment(models.Model):
     def __str__(self):
         return (
             f'Автор: {self.author.username}, '
-            f'Название: {self.title}, '
             f'Текст: {self.text[:20]}, '
             f'Дата: {self.pub_date}'
         )
