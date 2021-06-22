@@ -5,8 +5,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     CategoryViewSet, CommentsViewSet,
     GenreViewSet, ReviewViewSet,
-    TitleViewSet, TokenObtainView,
-    UserViewSet, send_email
+    TitleViewSet, UserViewSet,
+    obtain_token, send_email
 )
 
 router_v1 = routers.DefaultRouter()
@@ -30,7 +30,7 @@ urlpatterns = [
     path('v1/auth/email/',
          send_email),
     path('v1/auth/token/',
-         TokenObtainView.as_view(),
+         obtain_token,
          name='token_obtain_pair'),
     path('v1/auth/token/refresh/',
          TokenRefreshView.as_view(),
