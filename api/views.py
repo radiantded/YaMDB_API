@@ -136,23 +136,22 @@ class TitleViewSet(ModelViewSet):
         return TitleWriteSerializer
 
 
-class TokenObtainView(views.APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = ConfirmationDataSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            user = User.objects.get(
-                email=serializer.validated_data['email'],
-                confirmation_code=serializer.validated_data[
-                    'confirmation_code'
-                ]
-            )
-        except User.DoesNotExist:
-            return Response('Неверный email или confirmation_code')
-        data = get_token(user)
-        return Response(data)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def obtain_token(request):
+    serializer = ConfirmationDataSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    try:
+        user = User.objects.get(
+            email=serializer.validated_data['email'],
+            confirmation_code=serializer.validated_data[
+                'confirmation_code'
+            ]
+        )
+    except User.DoesNotExist:
+        return Response('Неверный email или confirmation_code')
+    data = get_token(user)
+    return Response(data)
 
 
 @api_view(['POST'])
