@@ -117,8 +117,11 @@ class Review(models.Model):
                               on_delete=models.CASCADE,
                               related_name='reviews')
     text = models.TextField()
-    score = models.IntegerField(validators=[MaxValueValidator(10),
-                                            MinValueValidator(1)])
+    score = models.PositiveSmallIntegerField(
+        validators=[
+            MaxValueValidator(10, message='Максимальное значение - 10'),
+            MinValueValidator(1, message='Минимальное значение - 1')],
+        help_text=('Введите значение от 1 до 10'))
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
