@@ -14,24 +14,26 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.serializers import RefreshToken
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
 from .permissions import (
+    ADMIN,
+    DJANGO_ADMIN,
     IsAdmin,
     IsAdminOrReadOnly,
     IsAuthorOrModeratorOrReadOnly
 )
 from .serializers import (
     CategorySerializer, CommentSerializer,
-    ConfirmationDataSerializer, EmailSerializer,
+    UserSerializer, EmailSerializer,
     GenreSerializer, ReviewSerializer,
     TitleSerializerGet, TitleSerializerPost,
-    UserSerializer
+    UserSerializer, ConfirmationDataSerializer
 )
+from .utils import get_token, create_username
 
 
 class GetPostDelViewSet(
@@ -99,7 +101,7 @@ class UserViewSet(ModelViewSet):
                                     data=request.data,
                                     partial=True)
         serializer.is_valid(raise_exception=True)
-        if request.user.role == 'admin' or request.user.is_staff:
+        if request.user.role in (ADMIN, DJANGO_ADMIN):
             serializer.save()
         serializer.save(role=request.user.role)
         return Response(serializer.data,
@@ -152,12 +154,8 @@ class TokenObtainView(views.APIView):
             )
         except User.DoesNotExist:
             return Response('Неверный email или confirmation_code')
-        data = self.get_token(user)
+        data = get_token(user)
         return Response(data)
-
-    def get_token(self, user):
-        refresh = RefreshToken.for_user(user)
-        return {"refresh": str(refresh), "access": str(refresh.access_token)}
 
 
 @api_view(['POST'])
@@ -175,9 +173,9 @@ def send_email(request):
               DEFAULT_FROM_EMAIL,
               [email])
     if not User.objects.filter(email=email).exists():
-        User.objects.create(username=email,
-                            email=email,
-                            confirmation_code=confirmation_code)
+        User.objects.create_user(username=create_username(email),
+                                 email=email,
+                                 confirmation_code=confirmation_code)
         return Response('Код подтверждения был отправлен Вам на почту.',
                         status=status.HTTP_201_CREATED)
     return Response('Пользователь с таким email уже существует',

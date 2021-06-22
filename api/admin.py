@@ -12,7 +12,7 @@ class UserAdmin(admin.ModelAdmin):
         'confirmation_code'
     )
     search_fields = ('username', 'email', 'role')
-    list_filter = ('username', 'role')
+    list_filter = ('role',)
     empty_value_display = '-пусто-'
 
 
