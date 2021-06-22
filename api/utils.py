@@ -1,4 +1,5 @@
 import secrets
+
 from rest_framework_simplejwt.serializers import RefreshToken
 
 from .models import User
