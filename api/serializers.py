@@ -52,7 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class EmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField()
 
 
 class GenreSerializer(serializers.ModelSerializer):

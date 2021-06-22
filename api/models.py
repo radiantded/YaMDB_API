@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from .managers import CustomUserManager
 
 ROLES = (
     ('user', 'пользователь'),
@@ -43,8 +44,20 @@ class User(AbstractUser):
         default='user'
     )
     confirmation_code = models.CharField(
-        max_length=100
+        max_length=100,
+        null=True,
+        blank=True
     )
+    password = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True
+    )
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     class Meta:
         verbose_name = 'Пользователь'
