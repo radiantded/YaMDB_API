@@ -9,27 +9,22 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
-    title = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name',
-    )
     score = serializers.IntegerField(
         max_value=10,
         min_value=1
     )
 
     def validate(self, data):
-        review = Review.objects.filter(
-            author=self.context['request'].user,
-            title=self.context['view'].kwargs['title_id'])
-        if self.context['request'].method == 'POST' and review.exists():
+        if self.context['request'].method == 'POST' and Review.objects.filter(
+                author=self.context['request'].user,
+                title=self.context['view'].kwargs['title_id']).exists():
             raise serializers.ValidationError('Вы не можете оставить '
                                               'больше одного отзыва')
         return data
 
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ('id', 'text', 'score', 'author', 'pub_date')
         required_fields = ('text', 'score',)
 
 
@@ -41,7 +36,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')
         required_fields = ('text',)
         read_only_fields = ('review',)
 
@@ -74,7 +69,7 @@ class CategorySerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class TitleSerializerGet(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
@@ -85,7 +80,7 @@ class TitleSerializerGet(serializers.ModelSerializer):
         model = Title
 
 
-class TitleSerializerPost(serializers.ModelSerializer):
+class TitleWriteSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug',
