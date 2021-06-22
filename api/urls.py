@@ -4,8 +4,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
     CategoryViewSet, CommentsViewSet,
-    TokenObtainView, GenreViewSet,
-    ReviewViewSet, TitleViewSet,
+    GenreViewSet, ReviewViewSet,
+    TitleViewSet, TokenObtainView,
     UserViewSet, send_email
 )
 

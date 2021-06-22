@@ -8,8 +8,7 @@ from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
+    AllowAny, IsAuthenticated,
     IsAuthenticatedOrReadOnly
 )
 from rest_framework.response import Response
@@ -20,20 +19,18 @@ from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
 from .permissions import (
-    ADMIN,
-    DJANGO_ADMIN,
-    IsAdmin,
-    IsAdminOrReadOnly,
+    ADMIN, DJANGO_ADMIN,
+    IsAdmin, IsAdminOrReadOnly,
     IsAuthorOrModeratorOrReadOnly
 )
 from .serializers import (
     CategorySerializer, CommentSerializer,
-    UserSerializer, EmailSerializer,
+    ConfirmationDataSerializer, EmailSerializer,
     GenreSerializer, ReviewSerializer,
-    TitleSerializerGet, TitleSerializerPost,
-    UserSerializer, ConfirmationDataSerializer
+    TitleReadSerializer, TitleWriteSerializer,
+    UserSerializer
 )
-from .utils import get_token, create_username
+from .utils import create_username, get_token
 
 
 class GetPostDelViewSet(
@@ -167,12 +164,12 @@ def send_email(request):
     message_subject = 'YaMDb confirmation code'
     message = 'Ваш код подтверждения: {confirmation_code}'
     confirmation_code = secrets.token_hex()
-    send_mail(message_subject,
-              message.format(
-                  confirmation_code=confirmation_code),
-              DEFAULT_FROM_EMAIL,
-              [email])
     if not User.objects.filter(email=email).exists():
+        send_mail(message_subject,
+                  message.format(
+                      confirmation_code=confirmation_code),
+                  DEFAULT_FROM_EMAIL,
+                  [email])
         User.objects.create_user(username=create_username(email),
                                  email=email,
                                  confirmation_code=confirmation_code)
