@@ -15,11 +15,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
-
 from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
 from .permissions import (
-    ADMIN, DJANGO_ADMIN,
     IsAdmin, IsAdminOrReadOnly,
     IsAuthorOrModeratorOrReadOnly
 )
@@ -98,9 +96,7 @@ class UserViewSet(ModelViewSet):
                                     data=request.data,
                                     partial=True)
         serializer.is_valid(raise_exception=True)
-        if request.user.role in (ADMIN, DJANGO_ADMIN):
-            serializer.save()
-        serializer.save(role=request.user.role)
+        serializer.save(role=user.role, partial=True)
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
@@ -141,15 +137,11 @@ class TitleViewSet(ModelViewSet):
 def obtain_token(request):
     serializer = ConfirmationDataSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    try:
-        user = User.objects.get(
-            email=serializer.validated_data['email'],
-            confirmation_code=serializer.validated_data[
-                'confirmation_code'
-            ]
-        )
-    except User.DoesNotExist:
-        return Response('Неверный email или confirmation_code')
+    user = get_object_or_404(
+        User,
+        email=serializer.validated_data['email'].lower(),
+        confirmation_code=serializer.validated_data['confirmation_code']
+    )
     data = get_token(user)
     return Response(data)
 
@@ -159,19 +151,19 @@ def obtain_token(request):
 def send_email(request):
     serializer = EmailSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data['email']
+    email = serializer.validated_data['email'].lower()
     message_subject = 'YaMDb confirmation code'
     message = 'Ваш код подтверждения: {confirmation_code}'
     confirmation_code = secrets.token_hex()
+    send_mail(message_subject,
+              message.format(
+                  confirmation_code=confirmation_code),
+              DEFAULT_FROM_EMAIL,
+              [email])
     if not User.objects.filter(email=email).exists():
-        send_mail(message_subject,
-                  message.format(
-                      confirmation_code=confirmation_code),
-                  DEFAULT_FROM_EMAIL,
-                  [email])
-        User.objects.create_user(username=create_username(email),
-                                 email=email,
-                                 confirmation_code=confirmation_code)
+        User.objects.create(username=create_username(email),
+                            email=email,
+                            confirmation_code=confirmation_code)
         return Response('Код подтверждения был отправлен Вам на почту.',
                         status=status.HTTP_201_CREATED)
     return Response('Пользователь с таким email уже существует',
