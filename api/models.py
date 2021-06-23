@@ -70,13 +70,16 @@ class User(AbstractUser):
 
 
 def year_validator(value):
-    if not (1000 < value < datetime.now().year):
-        raise ValidationError(f'"{value}" не корректное значение года!')
+    if not (1000 < value <= datetime.now().year):
+        raise ValidationError(f'"{value}" некорректное значение года!')
 
 
 class Category(models.Model):
     name = models.CharField(verbose_name='Категория', max_length=100)
-    slug = models.SlugField(verbose_name='Slug', max_length=50, unique=True)
+    slug = models.SlugField(
+        verbose_name='Уникальный идентификатор категории', max_length=50,
+        unique=True
+    )
 
     class Meta:
         verbose_name = 'Категория'
@@ -89,7 +92,10 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(verbose_name='Жанр', max_length=100)
-    slug = models.SlugField(verbose_name='Slug', max_length=50, unique=True)
+    slug = models.SlugField(
+        verbose_name='Уникальный идентификатор жанра', max_length=50,
+        unique=True
+    )
 
     class Meta:
         verbose_name = 'Жанр'
@@ -102,15 +108,18 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(verbose_name='Название', max_length=200)
-    year = models.IntegerField(verbose_name='Год выхода',
-                               validators=[year_validator])
-    description = models.CharField(verbose_name='Описание', max_length=600,
-                                   default="Описание отсутсвует", null=True)
-    category = models.ForeignKey(Category, verbose_name='Категория',
-                                 related_name='category', blank=True,
-                                 null=True, on_delete=models.SET_NULL)
+    year = models.IntegerField(
+        verbose_name='Год выхода', validators=[year_validator]
+    )
+    description = models.CharField(
+        verbose_name='Описание', max_length=600, null=True, blank=True
+    )
+    category = models.ForeignKey(
+        Category, verbose_name='Категория', related_name='category',
+        blank=True, null=True, on_delete=models.SET_NULL
+    )
     genre = models.ManyToManyField(
-        Genre, verbose_name='Жанры', related_name='genre', blank=True
+        Genre, verbose_name='Жанры', related_name='genres', blank=True
     )
 
     class Meta:
