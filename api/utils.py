@@ -11,12 +11,11 @@ def get_token(user):
 
 
 def create_username(email):
-    username = str(email.split('@')[0])
-
     def check_username(username):
         if not User.objects.filter(username=username).exists():
             return username
         username = f'{username}_{str(secrets.token_hex(3))}'
         return check_username(username)
+    username = str(email.split('@')[0])
     username = check_username(username)
     return username
