@@ -2,7 +2,6 @@
 api_yamdb
 
 # Import data to DB
-**!!!Required pandas module**
 
 Script: import_data.py
 
