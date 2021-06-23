@@ -92,9 +92,11 @@ class UserViewSet(ModelViewSet):
         if request.method == 'GET':
             serializer = UserSerializer(user)
             return Response(serializer.data)
-        serializer = UserSerializer(user,
-                                    data=request.data,
-                                    partial=True)
+        serializer = UserSerializer(
+            user,
+            data=request.data,
+            partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save(role=user.role, partial=True)
         return Response(serializer.data,
@@ -155,16 +157,24 @@ def send_email(request):
     message_subject = 'YaMDb confirmation code'
     message = 'Ваш код подтверждения: {confirmation_code}'
     confirmation_code = secrets.token_hex()
-    send_mail(message_subject,
-              message.format(
-                  confirmation_code=confirmation_code),
-              DEFAULT_FROM_EMAIL,
-              [email])
+    send_mail(
+        message_subject,
+        message.format(
+            confirmation_code=confirmation_code),
+        DEFAULT_FROM_EMAIL,
+        [email]
+    )
     if not User.objects.filter(email=email).exists():
-        User.objects.create(username=create_username(email),
-                            email=email,
-                            confirmation_code=confirmation_code)
-        return Response('Код подтверждения был отправлен Вам на почту.',
-                        status=status.HTTP_201_CREATED)
-    return Response('Пользователь с таким email уже существует',
-                    status=status.HTTP_400_BAD_REQUEST)
+        User.objects.create(
+            username=create_username(email),
+            email=email,
+            confirmation_code=confirmation_code
+        )
+        return Response(
+            'Код подтверждения был отправлен Вам на почту.',
+            status=status.HTTP_201_CREATED
+        )
+    return Response(
+        'Пользователь с таким email уже существует',
+        status=status.HTTP_400_BAD_REQUEST
+    )
