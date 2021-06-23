@@ -1,9 +1,9 @@
 import argparse
+import csv
 import os
+import re
 import sqlite3
 import sys
-
-import pandas as pd
 
 from api_yamdb.settings import DATABASES
 
@@ -32,12 +32,22 @@ def main():
         sys.exit(0)
 
     db_connection = sqlite3.connect(db_path)
-    data = pd.read_csv(csv_file)
+    cursor = db_connection.cursor()
 
-    # Exclude id column and import to DB
-    data = data.loc[:, data.columns != 'id']
-    data.to_sql(table_name, db_connection, if_exists='append', index=False)
+    with open(csv_file, encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            row.pop('id', None)
+            keys = "','".join(row.keys())
+            values_list = row.values()
+            values_list = list(map(lambda x: re.sub("'", '"', x), values_list))
+            values = "','".join(values_list)
+            cursor.execute(
+                f"insert into {table_name} ('{keys}') values ('{values}')"
+            )
 
+    db_connection.commit()
+    db_connection.close()
     print('Imported successfully!')
 
 
