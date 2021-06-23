@@ -165,8 +165,12 @@ def send_email(request):
         DEFAULT_FROM_EMAIL,
         [email]
     )
-    user, created = User.objects.get_or_create(email=email)
-    if created:
+    if not User.objects.filter(email=email).exists():
+        User.objects.create(
+            username=create_username(email),
+            email=email,
+            confirmation_code=confirmation_code
+        )
         return Response('Код подтверждения был отправлен Вам на почту.',
                         status=status.HTTP_201_CREATED)
     return Response('Новый код подтверждения был отправлен Вам на почту.')
