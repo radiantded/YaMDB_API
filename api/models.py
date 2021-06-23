@@ -5,14 +5,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .managers import CustomUserManager
 
-ROLES = (
-    ('user', 'пользователь'),
-    ('moderator', 'модератор'),
-    ('admin', 'администратор'),
-    ('django admin', 'администратор Django')
-)
+class Roles(models.TextChoices):
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
 
 
 class User(AbstractUser):
@@ -40,21 +37,14 @@ class User(AbstractUser):
     )
     role = models.CharField(
         max_length=30,
-        choices=ROLES,
-        default='user'
+        choices=Roles.choices,
+        default=Roles.USER
     )
     confirmation_code = models.CharField(
         max_length=100,
         null=True,
         blank=True
     )
-    password = models.CharField(
-        max_length=128,
-        null=True,
-        blank=True
-    )
-
-    objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

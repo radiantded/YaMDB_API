@@ -1,8 +1,6 @@
 from rest_framework import permissions
 
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-DJANGO_ADMIN = 'django admin'
+from .models import Roles
 
 
 class IsAuthorOrModeratorOrReadOnly(permissions.BasePermission):
@@ -10,7 +8,7 @@ class IsAuthorOrModeratorOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or obj.author == request.user
-            or request.user.role == MODERATOR
+            or request.user.role == Roles.MODERATOR
         )
 
 
@@ -18,14 +16,19 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
             request.method in permissions.SAFE_METHODS
-            or request.user.role in (ADMIN, DJANGO_ADMIN)
+            or request.user.role == Roles.ADMIN
+            or request.user.is_staff
+            or request.user.is_superuser
         )
 
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_authenticated:
-            return (
-                request.user.role in (ADMIN, DJANGO_ADMIN)
+        return (
+            request.user.is_authenticated
+            and (
+                request.user.role == Roles.ADMIN
+                or request.user.is_staff
+                or request.user.is_superuser
             )
-        return False
+        )

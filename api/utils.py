@@ -18,6 +18,5 @@ def create_username(email):
             return username
         username = f'{username}_{str(secrets.token_hex(3))}'
         return check_username(username)
-
     username = check_username(username)
     return username
