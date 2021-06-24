@@ -3,7 +3,6 @@ import secrets
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django.urls import conf
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -165,12 +164,15 @@ def send_email(request):
         DEFAULT_FROM_EMAIL,
         [email]
     )
-    if not User.objects.filter(email=email).exists():
-        User.objects.create(
-            username=create_username(email),
-            email=email,
-            confirmation_code=confirmation_code
-        )
+    user, created = User.objects.update_or_create(
+        email=email,
+        defaults={
+            'confirmation_code': confirmation_code,
+            'username': create_username(email)
+        }
+    )
+    if created:
         return Response('Код подтверждения был отправлен Вам на почту.',
                         status=status.HTTP_201_CREATED)
-    return Response('Новый код подтверждения был отправлен Вам на почту.')
+    return Response('Новый код подтверждения был отправлен Вам на почту.',
+                    status=status.HTTP_200_OK)
