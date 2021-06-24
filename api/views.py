@@ -99,8 +99,7 @@ class UserViewSet(ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save(role=user.role, partial=True)
-        return Response(serializer.data,
-                        status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(GetPostDelViewSet):
@@ -172,7 +171,9 @@ def send_email(request):
         }
     )
     if created:
-        return Response('Код подтверждения был отправлен Вам на почту.',
-                        status=status.HTTP_201_CREATED)
-    return Response('Новый код подтверждения был отправлен Вам на почту.',
-                    status=status.HTTP_200_OK)
+        return Response(
+            'Код подтверждения был отправлен Вам на почту.',
+            status=status.HTTP_201_CREATED)
+    return Response(
+        'Новый код подтверждения был отправлен Вам на почту.',
+        status=status.HTTP_200_OK)
