@@ -14,8 +14,5 @@ def create_username(email):
     def check_username(username):
         if not User.objects.filter(username=username).exists():
             return username
-        username = f'{username}_{str(secrets.token_hex(3))}'
-        return check_username(username)
-    username = str(email.split('@')[0])
-    username = check_username(username)
-    return username
+        return check_username(f'{username}_{secrets.token_hex(6)}')
+    return check_username(email.split('@')[0])
