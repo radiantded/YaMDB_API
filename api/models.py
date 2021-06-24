@@ -37,7 +37,7 @@ class User(AbstractUser):
         verbose_name='Роль', max_length=30, choices=ROLES, default=USER
     )
     confirmation_code = models.CharField(
-        verbose_name='Код подтверждения', max_length=100, 
+        verbose_name='Код подтверждения', max_length=100,
         null=True, blank=True
     )
 
