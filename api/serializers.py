@@ -9,17 +9,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
-    score = serializers.IntegerField(
-        max_value=10,
-        min_value=1
-    )
 
     def validate(self, data):
-        if self.context['request'].method == 'POST' and Review.objects.filter(
-                author=self.context['request'].user,
-                title=self.context['view'].kwargs['title_id']).exists():
-            raise serializers.ValidationError('Вы не можете оставить '
-                                              'больше одного отзыва')
+        if self.context.get(
+            'request').method == 'POST' and Review.objects.filter(
+            author=self.context.get('request').user,
+                title=self.context.get('view').kwargs.get(
+                    'title_id')).exists():
+            raise serializers.ValidationError(
+                'Вы не можете оставить больше одного отзыва')
         return data
 
     class Meta:
