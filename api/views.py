@@ -31,13 +31,16 @@ from .serializers import (
 from .utils import create_username, get_token
 
 
-class GetPostDelViewSet(
+class CategoryAndGenreBaseClass(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    pass
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
+    lookup_field = 'slug'
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
 
 
 class ReviewViewSet(ModelViewSet):
@@ -102,22 +105,14 @@ class UserViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CategoryViewSet(GetPostDelViewSet):
+class CategoryViewSet(CategoryAndGenreBaseClass):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
-    lookup_field = 'slug'
-    filter_backends = [SearchFilter]
-    search_fields = ['name']
 
 
-class GenreViewSet(GetPostDelViewSet):
+class GenreViewSet(CategoryAndGenreBaseClass):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly, ]
-    lookup_field = 'slug'
-    filter_backends = [SearchFilter]
-    search_fields = ['name']
 
 
 class TitleViewSet(ModelViewSet):

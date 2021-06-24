@@ -79,8 +79,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=200, verbose_name='Название')),
                 ('year', models.IntegerField(validators=[api.models.year_validator], verbose_name='Год выхода')),
                 ('description', models.CharField(blank=True, max_length=600, null=True, verbose_name='Описание')),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='category', to='api.Category', verbose_name='Категория')),
-                ('genre', models.ManyToManyField(blank=True, related_name='genres', to='api.Genre', verbose_name='Жанры')),
+                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='titles', to='api.Category', verbose_name='Категория')),
+                ('genre', models.ManyToManyField(blank=True, related_name='titles', to='api.Genre', verbose_name='Жанры')),
             ],
             options={
                 'verbose_name': 'Произведение',
