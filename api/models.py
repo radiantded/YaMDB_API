@@ -6,44 +6,39 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
-class Roles(models.TextChoices):
-    USER = 'user'
-    MODERATOR = 'moderator'
-    ADMIN = 'admin'
+USER = 'user'
+MODERATOR = 'moderator'
+ADMIN = 'admin'
+
+ROLES = (
+    (USER, 'пользователь'),
+    (MODERATOR, 'модератор'),
+    (ADMIN, 'админ')
+)
 
 
 class User(AbstractUser):
     first_name = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True
+        verbose_name='Имя', max_length=30, blank=True, null=True
     )
     last_name = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True
+        verbose_name='Фамилия', max_length=30, blank=True, null=True
     )
     username = models.CharField(
-        max_length=128,
-        unique=True
+        verbose_name='Ник', max_length=128, unique=True
     )
     bio = models.TextField(
-        max_length=1000,
-        blank=True,
-        null=True
+        verbose_name='О себе', max_length=1000, blank=True, null=True
     )
     email = models.EmailField(
-        unique=True
+        verbose_name='Адрес электронной почты', unique=True
     )
     role = models.CharField(
-        max_length=30,
-        choices=Roles.choices,
-        default=Roles.USER
+        verbose_name='Роль', max_length=30, choices=ROLES, default=USER
     )
     confirmation_code = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True
+        verbose_name='Код подтверждения', max_length=100, 
+        null=True, blank=True
     )
 
     USERNAME_FIELD = 'email'
@@ -122,12 +117,14 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    author = models.ForeignKey(User, verbose_name='Автор отзыва',
-                               on_delete=models.CASCADE,
-                               related_name='reviews')
-    title = models.ForeignKey(Title, verbose_name='Название объекта',
-                              on_delete=models.CASCADE,
-                              related_name='reviews')
+    author = models.ForeignKey(
+        User, verbose_name='Автор отзыва', on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    title = models.ForeignKey(
+        Title, verbose_name='Произведение', on_delete=models.CASCADE,
+        related_name='reviews'
+    )
     text = models.TextField()
     score = models.PositiveSmallIntegerField(
         validators=[
@@ -154,10 +151,12 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
+        User, verbose_name='Автор комментария', on_delete=models.CASCADE,
+        related_name='comments'
     )
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments'
+        Review, verbose_name='Отзыв', on_delete=models.CASCADE,
+        related_name='comments'
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
