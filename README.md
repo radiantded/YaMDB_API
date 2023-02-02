@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ```
 SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
 DEBUG=False
-ALLOWED_HOSTS=*
+ALLOWED_HOSTS=<ip вашего хоста>
 ```
 Перез запуском убедитесь, что применили все миграции:
 ```bash
